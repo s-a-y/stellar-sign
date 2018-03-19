@@ -3,11 +3,11 @@
 const StellarSdk = require('stellar-sdk');
 const server = new StellarSdk.Server(process.env.HORIZON_URL || 'https://horizon.stellar.org');
 const _ = require('lodash');
-// if (process.env.ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
   StellarSdk.Network.usePublicNetwork();
-// } else {
-//   StellarSdk.Network.useTestNetwork();
-// }
+} else {
+  StellarSdk.Network.useTestNetwork();
+}
 const uuid = require('uuid');
 
 const StellarSign = {
@@ -107,7 +107,8 @@ const StellarSign = {
               return {
                 version: item.version,
                 type: item.type,
-                body: item.parts.join()
+                body: item.parts.join(),
+                sender: srcAccount.home_domain
               }
             });
           })
