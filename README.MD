@@ -11,6 +11,10 @@ Usage example:
 const StellarSign = require('./index');
 const StellarSdk = require('stellar-sdk');
 
+StellarSign.useTestNetwork();
+StellarSign.skipHomeDomainValidation();
+StellarSign.setHorizonUrl('https://horizon-testnet.stellar.org');
+
 StellarSign.requestOperation(
   StellarSdk.Keypair.fromSecret('...'),
   'GD3CS2AR4YZ25LN6NARSSRJMUY7XQBJNGJJTQU2URRDPTPJZBYU2O3DD',
