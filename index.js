@@ -40,52 +40,57 @@ const StellarSign = {
    * @param Buffer xdr
    */
   requestOperation: (srcKeypair, destAddress, xdr) => {
+    let fedRecord = null;
 
-    return StellarSdk.FederationServer.resolve(destAddress)
-      .then((fedRecord) => {
-        return this.server.loadAccount(srcKeypair.publicKey())
-          .then(sourceAccount => {
-            const options = (fedRecord.memo ? {memo: new StellarSdk.Memo(fedRecord.memo_type, fedRecord.memo)} : {});
-            const builder = new StellarSdk.TransactionBuilder(sourceAccount, options);
+    return new Promise(function(resolve, reject) {
+        !!destAddress.account_id
+            ? resolve(destAddress)
+            : resolve(StellarSdk.FederationServer.resolve(destAddress));
+    })
+      .then((result) => {
+          fedRecord = result;
+          return this.server.loadAccount(srcKeypair.publicKey())
+      })
+      .then(sourceAccount => {
+        const options = (fedRecord.memo ? {memo: new StellarSdk.Memo(fedRecord.memo_type, fedRecord.memo)} : {});
+        const builder = new StellarSdk.TransactionBuilder(sourceAccount, options);
 
-            builder
-              .addOperation(StellarSdk.Operation.payment({
-                destination: fedRecord.account_id,
-                asset: StellarSdk.Asset.native(),
-                amount: '0.0000001'
-              }));
+        builder
+          .addOperation(StellarSdk.Operation.payment({
+            destination: fedRecord.account_id,
+            asset: StellarSdk.Asset.native(),
+            amount: '0.0000001'
+          }));
 
-            const guid = uuid.v4();
+        const guid = uuid.v4();
 
-            for (let i = 0; i < Math.ceil(xdr.length/64); i++) {
-              const chunk = xdr.slice(i*64, (i+1)*64);
-              builder
-                .addOperation(StellarSdk.Operation.manageData({
-                  name: ('srv1:op:' + guid + ':' + i),
-                  value: chunk,
-                }));
-            }
+        for (let i = 0; i < Math.ceil(xdr.length/64); i++) {
+          const chunk = xdr.slice(i*64, (i+1)*64);
+          builder
+            .addOperation(StellarSdk.Operation.manageData({
+              name: ('srv1:op:' + guid + ':' + i),
+              value: chunk,
+            }));
+        }
 
-            for (let i = 0; i < Math.ceil(xdr.length/64); i++) {
-              builder
-                .addOperation(StellarSdk.Operation.manageData({
-                  name: ('srv1:op:' + guid + ':' + i),
-                  value: '',
-                }));
-            }
+        for (let i = 0; i < Math.ceil(xdr.length/64); i++) {
+          builder
+            .addOperation(StellarSdk.Operation.manageData({
+              name: ('srv1:op:' + guid + ':' + i),
+              value: '',
+            }));
+        }
 
-            const tx = builder.build();
-            tx.sign(srcKeypair);
+        const tx = builder.build();
+        tx.sign(srcKeypair);
 
-            return this.server.submitTransaction(tx);
-          })
+        return this.server.submitTransaction(tx);
       });
-
   },
 
   /**
    * @param tx
-   * @returns {Array}
+   * @returns {Promise<Array>}
    */
   parseTx: (tx) => {
       const manageDataOps = _.filter(tx.operations, (item) => {
@@ -100,7 +105,7 @@ const StellarSign = {
       });
 
       if (!manageDataOps.length) {
-          throw new Error('No relevant manageData operations found');
+          Promise.reject(new Error('No relevant manageData operations found'));
       }
 
       const result = {};
@@ -115,20 +120,20 @@ const StellarSign = {
           result[itemPieces[2]].type = itemPieces[1];
       });
 
-      return _.map(result, (item) => {
+      return Promise.resolve(_.map(result, (item) => {
           return {
               version: item.version,
               type: item.type,
               body: Buffer.concat(item.parts, item.bufferSize).toString('base64'),
           }
-      });
+      }));
   },
 
   decodeXDR: (xdr) => {
     const tx = new StellarSdk.Transaction(xdr);
 
     if (this._skipHomeDomainValidation) {
-        return Promise.resolve(StellarSign.parseTx(tx));
+        return StellarSign.parseTx(tx);
     } else {
         return this.server.loadAccount(tx.source)
             .then(srcAccount => {
@@ -143,9 +148,11 @@ const StellarSign = {
                             return Promise.reject('SIGNING_REQUEST_ACCOUNT doesn\'t exist in stellar.toml or doesn\'t match the source account')
                         }
 
-                        const result = StellarSign.parseTx(tx);
-                        result.sender = srcAccount.home_domain;
-                        return result;
+                        return StellarSign.parseTx(tx)
+                            .then((result) => {
+                                result.sender = srcAccount.home_domain;
+                                return result;
+                            })
                     })
                     .catch(err => {
                         return Promise.reject(new Error('stellar.toml placed on home domain is not found or invalid: ' + err.message))
