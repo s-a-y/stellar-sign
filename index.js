@@ -105,7 +105,7 @@ const StellarSign = {
       });
 
       if (!manageDataOps.length) {
-          Promise.reject(new Error('No relevant manageData operations found'));
+          return Promise.reject(new Error('No relevant manageData operations found'));
       }
 
       const result = {};
