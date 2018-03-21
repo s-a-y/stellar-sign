@@ -4,11 +4,19 @@ const StellarSdk = require('stellar-sdk');
 const _ = require('lodash');
 const uuid = require('uuid');
 
+if (process.env.NODE_ENV === 'production') {
+  StellarSdk.Network.usePublicNetwork();
+} else {
+  StellarSdk.Network.useTestNetwork();
+}
+
+let server = new StellarSdk.Server(process.env.HORIZON_URL || 'https://horizon.stellar.org');
+
 const StellarSign = {
 
   setHorizonUrl: (url) => {
       this.url = url;
-      this.server = new StellarSdk.Server(this.url);
+      server = new StellarSdk.Server(this.url);
       return this;
   },
 
@@ -49,7 +57,7 @@ const StellarSign = {
     })
       .then((result) => {
           fedRecord = result;
-          return this.server.loadAccount(srcKeypair.publicKey())
+          return server.loadAccount(srcKeypair.publicKey())
       })
       .then(sourceAccount => {
         const options = (fedRecord.memo ? {memo: new StellarSdk.Memo(fedRecord.memo_type, fedRecord.memo)} : {});
@@ -84,7 +92,7 @@ const StellarSign = {
         const tx = builder.build();
         tx.sign(srcKeypair);
 
-        return this.server.submitTransaction(tx);
+        return server.submitTransaction(tx);
       });
   },
 
@@ -135,7 +143,7 @@ const StellarSign = {
     if (this._skipHomeDomainValidation) {
         return StellarSign.parseTx(tx);
     } else {
-        return this.server.loadAccount(tx.source)
+        return server.loadAccount(tx.source)
             .then(srcAccount => {
 
                 if (!srcAccount.home_domain) {
