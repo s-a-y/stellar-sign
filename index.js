@@ -151,6 +151,9 @@ const StellarSign = {
                 }
 
                 return StellarSdk.StellarTomlResolver.resolve(srcAccount.home_domain)
+                    .catch(err => {
+                        return Promise.reject(new Error('stellar.toml placed on home domain is not found or invalid: ' + err.message))
+                    })
                     .then(tomlObject => {
                         if (!tomlObject.SIGNING_REQUEST_ACCOUNT || tomlObject.SIGNING_REQUEST_ACCOUNT !== tx.source) {
                             return Promise.reject('SIGNING_REQUEST_ACCOUNT doesn\'t exist in stellar.toml or doesn\'t match the source account')
@@ -161,9 +164,6 @@ const StellarSign = {
                                 result.sender = srcAccount.home_domain;
                                 return result;
                             })
-                    })
-                    .catch(err => {
-                        return Promise.reject(new Error('stellar.toml placed on home domain is not found or invalid: ' + err.message))
                     });
             });
     }
