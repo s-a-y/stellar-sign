@@ -1,5 +1,13 @@
 # Stellar Sign
 
+This is my attempt to implement multisig coordinator without requiring an API endpoint.
+Wallets that want to support it should listen to incoming transactions like that one
+```
+AAAAAPYpaBHmM66tvmgjKUUspj94BS0yUzhTVIxG+b05DimnAAAB9AEB1DsAAAAYAAAAAAAAAAEAAAAGdW1icmUxAAAAAAAFAAAAAAAAAAEAAAAAY7jLWdf+Ukef84py3gmKsShfmf3bZ3ugbuD40A2gJAYAAAAAAAAAAAAAAAEAAAAAAAAACgAAAC5zcnYxOnR4OjM3N2NmZDFjLTcwOWMtNDIzOS05OWY1LTVhNzdhMTk1YWU1YjowAAAAAAABAAAAQAAAAABngMLdMuMsMnxyYGqBB+qCgnUTJZFR5PU6Mz/eSqeGsAAAAGQA/PkXAAIGPAAAAAAAAAABAAAABHRlc3QAAAAAAAAACgAAAC5zcnYxOnR4OjM3N2NmZDFjLTcwOWMtNDIzOS05OWY1LTVhNzdhMTk1YWU1YjowAAAAAAAAAAAAAAAAAAoAAAAuc3J2MTp0eDozNzdjZmQxYy03MDljLTQyMzktOTlmNS01YTc3YTE5NWFlNWI6MQAAAAAAAQAAAEAAAAABAAAAAAAAAAAAAAAAl651UFdEu7Hu0lMzb8cIuXssxM9Nl6lWeTwguHsekDUAAAAAATKzoAAAAAAAAAAAAAAAAAAAAAoAAAAuc3J2MTp0eDozNzdjZmQxYy03MDljLTQyMzktOTlmNS01YTc3YTE5NWFlNWI6MQAAAAAAAAAAAAAAAAABOQ4ppwAAAEBSi/4nif38kBkJlX+7qyh3vUKUKL6rkkcuCngWm0qDNJQcGXcoIFVJvRBlQkDtPH84JiCHFQjdMSSFlmD/LvoB
+```
+
+## How to use
+
 Account should have a home domain set to be able to send requests,
 and on home domain /.well-known/stellar.toml file should contain SIGNING_REQUEST_ACCOUNT=G...
 to verify the legitimacy of siging request.
@@ -75,7 +83,7 @@ server.loadAccount(keypair.publicKey())
 ```
 
 
-Recipient decodes transaction using `decodeXDR` method
+Recipient just listens to incoming transactions, decodes transaction using `decodeXDR` method
 
 ```
  
