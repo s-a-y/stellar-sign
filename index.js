@@ -170,7 +170,7 @@ const StellarSign = {
       .then(srcAccount => {
 
         if (skipSenderDomainValidation) {
-          return Promise.resolve(true);
+          return srcAccount;
         }
 
         if (!srcAccount.home_domain) {
@@ -182,17 +182,18 @@ const StellarSign = {
             if (!tomlObject.SIGNING_REQUEST_ACCOUNT || tomlObject.SIGNING_REQUEST_ACCOUNT !== tx.source) {
               return Promise.reject('SIGNING_REQUEST_ACCOUNT doesn\'t exist in stellar.toml or doesn\'t match the source account')
             }
+            return srcAccount;
           })
           .catch(err => {
             return Promise.reject(new Error('stellar.toml placed on home domain is not found or invalid: ' + err.message))
-          })
-          .then(() => {
-            return StellarSign.parseTx(tx)
-          })
-          .then((result) => {
-            result.sender = srcAccount.home_domain;
-            return result;
           });
+      })
+      .then((srcAccount) => {
+        return { result: StellarSign.parseTx(tx), srcAccount };
+      })
+      .then(({ result, srcAccount }) => {
+        result.sender = srcAccount.home_domain;
+        return result;
       })
       .catch(err => {
         return Promise.reject(new Error('Decoding XDR failed: ' + err.message))
