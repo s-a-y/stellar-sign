@@ -163,10 +163,10 @@ const StellarSign = {
     }));
   },
 
-  decodeXDR: (xdr, skipSenderDomainValidation = false) => {
+  decodeXDR: (source, xdr, skipSenderDomainValidation = false) => {
     const tx = new StellarSdk.Transaction(xdr);
 
-    return StellarSign.getServer().loadAccount(tx.source)
+    return StellarSign.getServer().loadAccount(source)
       .then(srcAccount => {
 
         if (skipSenderDomainValidation) {
@@ -179,7 +179,7 @@ const StellarSign = {
 
         return StellarSdk.StellarTomlResolver.resolve(srcAccount.home_domain)
           .then(tomlObject => {
-            if (!tomlObject.SIGNING_REQUEST_ACCOUNT || tomlObject.SIGNING_REQUEST_ACCOUNT !== tx.source) {
+            if (!tomlObject.SIGNING_REQUEST_ACCOUNT || tomlObject.SIGNING_REQUEST_ACCOUNT !== source) {
               return Promise.reject('SIGNING_REQUEST_ACCOUNT doesn\'t exist in stellar.toml or doesn\'t match the source account')
             }
           })
