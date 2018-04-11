@@ -1,9 +1,8 @@
 {
   "name": "stellar-sign",
-  "version": "0.0.3",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
-  "repository": "https://github.com/s-a-y/stellar-sign",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
