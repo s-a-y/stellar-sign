@@ -155,10 +155,22 @@ const StellarSign = {
     });
 
     return Promise.resolve(_.map(result, (item) => {
+
+      let parsed = null;
+      const body = Buffer.concat(item.parts, item.bufferSize).toString('base64');
+      if (item.type === 'tx') {
+        parsed = new StellarSdk.Transaction(body);
+      } else if (item.type === 'op') {
+        parsed = StellarSdk.Operation.fromXDRObject(
+          StellarSdk.xdr.Operation.fromXDR(body, 'base64')
+        );
+      }
+
       return {
         version: item.version,
         type: item.type,
-        body: Buffer.concat(item.parts, item.bufferSize).toString('base64'),
+        body: body,
+        parsed: parsed
       }
     }));
   },
@@ -189,11 +201,12 @@ const StellarSign = {
           });
       })
       .then((srcAccount) => {
-        return { result: StellarSign.parseTx(tx), srcAccount };
-      })
-      .then(({ result, srcAccount }) => {
-        result.sender = srcAccount.home_domain;
-        return result;
+        return StellarSign.parseTx(tx)
+          .then((result) => {
+            return _.map(result, (item) => {
+              return Object.assign(item, { sender: srcAccount.home_domain });
+            });
+          });
       })
       .catch(err => {
         return Promise.reject(new Error('Decoding XDR failed: ' + err.message))
