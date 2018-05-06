@@ -7,7 +7,7 @@ const uuid = require('uuid');
 const StellarSign = {
 
   setHorizonUrl: (url) => {
-    StellarSign.url = url;
+    StellarSign.horizonUrl = url;
     return StellarSign;
   },
 
