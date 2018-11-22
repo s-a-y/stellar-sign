@@ -132,7 +132,7 @@ const StellarSign = {
       if (item.type !== 'manageData' || !item.value) {
         return false;
       }
-      const itemPieces = item.name.split(':');
+      const itemPieces = item.name.toString().split(':');
       return itemPieces[0] && itemPieces[0] === 'srv1'
         && itemPieces[1] && (itemPieces[1] === 'op' || itemPieces[1] === 'tx')
         && itemPieces[2] && itemPieces[3];
@@ -144,7 +144,7 @@ const StellarSign = {
 
     const result = {};
     _.each(manageDataOps, (item) => {
-      const itemPieces = item.name.split(':');
+      const itemPieces = item.name.toString().split(':');
       if (!result[itemPieces[2]]) {
         result[itemPieces[2]] = {parts: [], bufferSize: 0};
       }

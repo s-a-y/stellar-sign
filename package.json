@@ -1,6 +1,6 @@
 {
   "name": "stellar-sign",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "",
   "main": "index.js",
   "repository": "https://github.com/s-a-y/stellar-sign",
@@ -13,8 +13,8 @@
   "author": "umbrel",
   "license": "ISC",
   "dependencies": {
-    "stellar-sdk": "^0.8.0",
-    "uuid": "^3.2.1",
+    "stellar-sdk": "latest",
+    "uuid": "latest",
     "lodash": "latest"
   }
 }
