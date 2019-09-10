@@ -19,9 +19,6 @@ const StellarSign = {
   getServer() {
     if (!StellarSign.server) {
       StellarSign.server = new StellarSdk.Server(StellarSign.horizonUrl || process.env.HORIZON_URL || 'https://horizon.stellar.org');
-      StellarSdk.Network.use(new StellarSdk.Network(StellarSign.networkPassphrase || (
-        process.env.NODE_ENV === 'production' ? StellarSdk.Networks.PUBLIC : StellarSdk.Networks.TESTNET
-      )));
     }
     return StellarSign.server;
   },
@@ -75,10 +72,19 @@ const StellarSign = {
       StellarSign.getServer().loadAccount(srcKeypair.publicKey())
     ])
       .then(([fedRecord, sourceAccount]) => {
-        const options = (fedRecord.memo ? {memo: new StellarSdk.Memo(fedRecord.memo_type, fedRecord.memo)} : {});
+        const options = (fedRecord.memo ? {
+          fee: 100,
+          memo: new StellarSdk.Memo(fedRecord.memo_type, fedRecord.memo)
+        } : {
+          fee: 100,
+        });
         const builder = new StellarSdk.TransactionBuilder(sourceAccount, options);
 
         builder
+          .setTimeout(180)
+          .setNetworkPassphrase(StellarSign.networkPassphrase || (
+             process.env.NODE_ENV === 'production' ? StellarSdk.Networks.PUBLIC : StellarSdk.Networks.TESTNET
+          ))
           .addOperation(StellarSdk.Operation.payment({
             destination: fedRecord.account_id,
             asset: StellarSdk.Asset.native(),
